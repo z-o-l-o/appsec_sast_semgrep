@@ -1,0 +1,36 @@
+rules:
+  - id: py-dangerous-subprocess-shell
+    languages: [python]
+    message: "Опасный вызов subprocess с shell=True (команда оболочки)"
+    severity: ERROR
+    pattern: subprocess.run(..., shell=True)
+
+  - id: py-insecure-md5
+    languages: [python]
+    message: "Использование hashlib.md5 для хеширования пароля или важных данных"
+    severity: WARNING
+    pattern: hashlib.md5(...)
+
+  - id: py-insecure-yaml-load
+    languages: [python]
+    message: "Небезопасный вызов yaml.load без безопасного Loader"
+    severity: ERROR
+    pattern: yaml.load(...)
+
+  - id: py-insecure-pickle-loads
+    languages: [python]
+    message: "Небезопасная десериализация через pickle.loads"
+    severity: ERROR
+    pattern: pickle.loads(...)
+
+  - id: py-requests-no-verify
+    languages: [python]
+    message: "HTTP-запрос с verify=False (отключена проверка TLS-сертификата)"
+    severity: WARNING
+    pattern: requests.get(..., verify=False)
+
+  - id: py-sql-string-concat
+    languages: [python]
+    message: "SQL-запрос собирается через конкатенацию строк, возможна SQL-инъекция"
+    severity: WARNING
+    pattern: cur.execute("SELECT " + ...)
