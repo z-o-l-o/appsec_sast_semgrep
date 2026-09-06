@@ -1,0 +1,169 @@
+                    
+                    
+┌──────────────────┐
+│ 16 Code Findings │
+└──────────────────┘
+                         
+  [36m[22m[24m  app.py[0m
+    ❯❱ python.django.security.injection.sql.sql-injection-using-db-cursor-execute.sql-injection-db-cursor-execute
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          User-controlled data from a request is passed to 'execute()'. This could lead to a SQL injection and
+          therefore protected information could be leaked. Instead, use django's QuerySets, which are built   
+          with query parameterization and therefore not vulnerable to sql injection. For example, you could   
+          use `Entry.objects.filter(date=2006)`.                                                              
+          Details: https://sg.run/qx7y                                                                        
+                                                                                                              
+           17┆ user_id = request.args.get("id", "")
+           18┆ conn = get_db()
+           19┆ cur = conn.cursor()
+           20┆ query = f"SELECT id, username, email FROM users WHERE id = {user_id}"
+           21┆ cur.execute(query)
+   
+   ❯❯❱ python.django.security.injection.tainted-sql-string.tainted-sql-string
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input used to manually construct a SQL string. This is usually bad practice because 
+          manual construction could accidentally result in a SQL injection. An attacker could use a SQL     
+          injection to steal or modify contents of the database. Instead, use a parameterized query which is
+          available by default in most database engines. Alternatively, consider using the Django object-   
+          relational mappers (ORM) instead of raw SQL queries.                                              
+          Details: https://sg.run/PbZp                                                                      
+                                                                                                            
+           20┆ query = f"SELECT id, username, email FROM users WHERE id = {user_id}"
+   
+   ❯❯❱ python.flask.security.injection.tainted-sql-string.tainted-sql-string
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input used to manually construct a SQL string. This is usually bad practice because 
+          manual construction could accidentally result in a SQL injection. An attacker could use a SQL     
+          injection to steal or modify contents of the database. Instead, use a parameterized query which is
+          available by default in most database engines. Alternatively, consider using an object-relational 
+          mapper (ORM) such as SQLAlchemy which will protect your queries.                                  
+          Details: https://sg.run/JxZj                                                                      
+                                                                                                            
+           20┆ query = f"SELECT id, username, email FROM users WHERE id = {user_id}"
+   
+    ❯❱ python.lang.security.audit.formatted-sql-query.formatted-sql-query
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected possible formatted SQL query. Use parameterized queries instead.
+          Details: https://sg.run/EkWw                                             
+                                                                                   
+           21┆ cur.execute(query)
+   
+   ❯❯❱ python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL
+          Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy      
+          provides TextualSQL to easily used prepared statement with named parameters. For complex SQL        
+          composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy   
+          ORM will be a better option.                                                                        
+          Details: https://sg.run/2b1L                                                                        
+                                                                                                              
+           21┆ cur.execute(query)
+   
+   ❯❯❱ python.flask.security.injection.subprocess-injection.subprocess-injection
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input entering a `subprocess` call unsafely. This could result in a command injection 
+          vulnerability. An attacker could use this vulnerability to execute arbitrary commands on the host,  
+          which allows them to download malware, scan sensitive data, or run any command they wish on the     
+          server. Do not let users choose the command to run. In general, prefer to use Python API versions of
+          system commands. If you must use subprocess, use a dictionary to allowlist a set of commands.       
+          Details: https://sg.run/5gW3                                                                        
+                                                                                                              
+           33┆ subprocess.run(cmd, shell=True)
+   
+   ❯❯❱ python.lang.security.dangerous-subprocess-use.dangerous-subprocess-use
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected subprocess function 'run' with user controlled data. A malicious actor could leverage this
+          to perform command injection. You may consider using 'shlex.escape()'.                             
+          Details: https://sg.run/NWxp                                                                       
+                                                                                                             
+           33┆ subprocess.run(cmd, shell=True)
+   
+   ❯❯❱ python.lang.security.audit.subprocess-shell-true.subprocess-shell-true
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Found 'subprocess' function 'run' with 'shell=True'. This is dangerous because this call will spawn
+          the command using a shell process. Doing so propagates current shell settings and variables, which 
+          makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.         
+          Details: https://sg.run/J92w                                                                       
+                                                                                                             
+           ▶▶┆ Autofix ▶ False
+           33┆ subprocess.run(cmd, shell=True)
+   
+   ❯❯❱ python.flask.security.insecure-deserialization.insecure-deserialization
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected the use of an insecure deserialization library in a Flask route. These libraries are prone
+          to code execution vulnerabilities. Ensure user data does not enter this function. To fix this, try 
+          to avoid serializing whole objects. Consider instead using a serializer such as JSON.              
+          Details: https://sg.run/N45z                                                                       
+                                                                                                             
+           41┆ obj = pickle.loads(bytes.fromhex(data))
+   
+    ❯❱ python.lang.security.deserialization.pickle.avoid-pickle
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Avoid using `pickle`, which is known to lead to code execution vulnerabilities. When unpickling, the
+          serialized data could be manipulated to run arbitrary code. Instead, consider serializing the       
+          relevant data as JSON or a similar text-based serialization format.                                 
+          Details: https://sg.run/OPwB                                                                        
+                                                                                                              
+           41┆ obj = pickle.loads(bytes.fromhex(data))
+   
+   ❯❯❱ python.django.security.injection.ssrf.ssrf-injection-requests.ssrf-injection-requests
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Data from request object is passed to a new server-side request. This could lead to a server-side  
+          request forgery (SSRF). To mitigate, ensure that schemes and hosts are validated against an        
+          allowlist, do not forward the response to the user, and ensure proper authentication and transport-
+          layer security in the proxied request. See https://owasp.org/www-                                  
+          community/attacks/Server_Side_Request_Forgery to learn more about SSRF vulnerabilities.            
+          Details: https://sg.run/YvY4                                                                       
+                                                                                                             
+           49┆ url = request.args.get("url", "https://example.com")
+           50┆ r = requests.get(url, verify=False)
+   
+   ❯❯❱ python.flask.security.injection.ssrf-requests.ssrf-requests
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Data from request object is passed to a new server-side request. This could lead to a server-side  
+          request forgery (SSRF). To mitigate, ensure that schemes and hosts are validated against an        
+          allowlist, do not forward the response to the user, and ensure proper authentication and transport-
+          layer security in the proxied request.                                                             
+          Details: https://sg.run/J9LW                                                                       
+                                                                                                             
+           50┆ r = requests.get(url, verify=False)
+   
+   ❯❯❱ python.requests.security.disabled-cert-validation.disabled-cert-validation
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Certificate verification has been explicitly disabled. This permits insecure connections to insecure
+          servers. Re-enable certification validation.                                                        
+          Details: https://sg.run/AlYp                                                                        
+                                                                                                              
+           ▶▶┆ Autofix ▶ requests.get(url, verify=True)
+           50┆ r = requests.get(url, verify=False)
+   
+    ❯❱ python.flask.security.audit.directly-returned-format-string.directly-returned-format-string
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected Flask route directly returning a formatted string. This is subject to cross-site scripting
+          if user input can reach the string. Consider using the template engine instead and rendering pages 
+          with 'render_template()'.                                                                          
+          Details: https://sg.run/Zv6o                                                                       
+                                                                                                             
+           51┆ return f"Status: {r.status_code}"
+   
+    ❯❱ python.flask.security.audit.debug-enabled.debug-enabled
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected Flask app with debug=True. Do not deploy to production with this flag enabled as it will   
+          leak sensitive information. Instead, consider using Flask configuration variables or setting 'debug'
+          using system environment variables.                                                                 
+          Details: https://sg.run/dKrd                                                                        
+                                                                                                              
+           55┆ app.run(debug=True)
+                                 
+  [36m[22m[24m  insecure_db.py[0m
+   ❯❯❱ python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL
+          Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy      
+          provides TextualSQL to easily used prepared statement with named parameters. For complex SQL        
+          composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy   
+          ORM will be a better option.                                                                        
+          Details: https://sg.run/2b1L                                                                        
+                                                                                                              
+            8┆ cur.execute(query)
+
